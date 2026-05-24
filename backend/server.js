@@ -3,6 +3,11 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import axios from 'axios';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -295,6 +300,16 @@ app.post('/api/github/file', async (req, res) => {
     console.error('GitHub file fetch error:', error);
     res.status(500).json({ error: `Could not download file content: ${error.message}` });
   }
+});
+// Serve frontend static files in production
+const frontendBuildPath = path.join(__dirname, '../frontend/dist');
+app.use(express.static(frontendBuildPath));
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendBuildPath, 'index.html'));
 });
 
 app.listen(PORT, () => {
